@@ -8,7 +8,6 @@ import { Link } from "react-router-dom";
 
 const Cart = () => {
   const { loading, userData } = useContext(AuthContext);
-console.log(userData);
   
 
   if (loading) {

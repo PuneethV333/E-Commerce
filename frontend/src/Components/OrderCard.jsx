@@ -2,7 +2,6 @@ import React from "react";
 import Rating from "./Rating";
 
 const OrderCard = ({ info }) => {
-  console.log(info);
   
   const formattedDate = info.expectedDeliveryDate
     ? new Date(info.expectedDeliveryDate).toLocaleDateString("en-IN", {
@@ -12,7 +11,6 @@ const OrderCard = ({ info }) => {
       })
     : "N/A";
 
-    console.log(info);
     
 
   return (

@@ -1,29 +1,30 @@
 const User = require("../models/user");
 
-// 🧩 Helper to create a new user
-const createUser = async ({ email, userName, firebaseUid }) => {
+
+const createUser = async ({ email, displayName, firebaseUid }) => {
   const existingUser = await User.findOne({ firebaseUid });
   if (existingUser) return null;
 
   const newUser = new User({
     firebaseUid,
-    userName,
+    userName: displayName,
     email,
   });
+
   await newUser.save();
   return newUser;
 };
 
-// 📩 Sign up via Email
+
 const signUpViaEmail = async (req, res) => {
   try {
-    const { email, firebaseUid, userName } = req.body;
+    const { email, firebaseUid, displayName } = req.body;
 
-    if (!email || !firebaseUid || !userName) {
+    if (!email || !firebaseUid || !displayName) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = await createUser({ email, userName, firebaseUid });
+    const user = await createUser({ email, displayName, firebaseUid });
     if (!user)
       return res.status(400).json({ message: "User already exists" });
 
@@ -34,19 +35,21 @@ const signUpViaEmail = async (req, res) => {
   }
 };
 
-// 🔵 Sign in via Google
+
 const viaGoogle = async (req, res) => {
   try {
-    const { email, userName, firebaseUid } = req.body;
-    if (!email || !firebaseUid || !userName)
+    const { email, displayName, firebaseUid } = req.body;
+
+    if (!email || !firebaseUid || !displayName)
       return res.status(400).json({ message: "All fields are required" });
 
     let user = await User.findOne({ firebaseUid })
       .populate("cartProduct.productInfo")
-      .populate("orderedProd.productInfo");
+      .populate("orderedProd.productInfo")
+      .populate("deliveredProd");
 
     if (!user) {
-      user = await createUser({ email, userName, firebaseUid });
+      user = await createUser({ email, displayName, firebaseUid });
     }
 
     res.status(201).json(user);
@@ -56,7 +59,30 @@ const viaGoogle = async (req, res) => {
   }
 };
 
-// 🙋‍♂️ Get Current User (/api/user/me)
+
+const signInViaEmail = async (req, res) => {
+  try {
+    const firebaseUid = req.user?.firebaseUid || req.body.firebaseUid;
+
+    if (!firebaseUid)
+      return res.status(400).json({ message: "Firebase UID missing" });
+
+    const user = await User.findOne({ firebaseUid })
+      .populate("cartProduct.productInfo")
+      .populate("orderedProd.productInfo")
+      .populate("deliveredProd");
+
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    res.status(500).json({ message: "Server error fetching user" });
+  }
+};
+
+
 const getUserMe = async (req, res) => {
   try {
     const { firebaseUid } = req.user;
@@ -66,7 +92,8 @@ const getUserMe = async (req, res) => {
 
     const user = await User.findOne({ firebaseUid })
       .populate("cartProduct.productInfo")
-      .populate("orderedProd.productInfo");
+      .populate("orderedProd.productInfo")
+      .populate("deliveredProd");
 
     if (!user)
       return res.status(404).json({ message: "User not found" });
@@ -78,39 +105,18 @@ const getUserMe = async (req, res) => {
   }
 };
 
-// 👥 Get All Users (Admin only)
+
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
       .populate("cartProduct.productInfo")
-      .populate("orderedProd.productInfo");
+      .populate("orderedProd.productInfo")
+      .populate("deliveredProd");
 
-    res.json(users);
+    res.status(200).json(users);
   } catch (err) {
     console.error("Error fetching users:", err);
     res.status(500).json({ error: err.message });
-  }
-};
-
-// 🟢 Sign In via Email
-const signInViaEmail = async (req, res) => {
-  try {
-    const firebaseUid = req.user?.firebaseUid || req.body.firebaseUid;
-
-    if (!firebaseUid)
-      return res.status(400).json({ message: "Firebase UID missing" });
-
-    const user = await User.findOne({ firebaseUid })
-      .populate("cartProduct.productInfo")
-      .populate("orderedProd.productInfo");
-
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
-
-    res.status(200).json(user);
-  } catch (err) {
-    console.error("Error fetching user:", err);
-    res.status(500).json({ message: "Server error fetching user" });
   }
 };
 

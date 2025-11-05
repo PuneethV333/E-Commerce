@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const User = require('../models/user');
 
 const getProduct = async (req, res) => {
   try {
@@ -45,5 +46,32 @@ const addNewProd = async (req, res) => {
   }
 };
 
+const addReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reviewText, rating } = req.body;
 
-module.exports = { getProduct, getProductById, addNewProd };
+    const user = await User.findOne({ firebaseUid: req.user.firebaseUid });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    product.reviews.push({
+      userInfo: user._id,
+      review:reviewText,
+      date: new Date(),
+    });
+
+    await product.save();
+
+    const products = await Product.find();
+    res.status(200).json({ message: "Review added successfully", products });
+  } catch (err) {
+    console.error("Add review error:", err);
+    res.status(500).json({ message: "Server error adding review" });
+  }
+};
+
+
+module.exports = { getProduct, getProductById, addNewProd, addReview };

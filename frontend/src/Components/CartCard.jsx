@@ -14,9 +14,6 @@ const CartCard = ({ info }) => {
   const [loading, setLoading] = useState(false);
 
   if (!info) return null;
-console.log("Cart Info:", info);
-console.log("Product Info:", info.productInfo);
-
 
   // ✅ Function to update quantity of the product in the cart
   const updateQuantity = async (newQty) => {
@@ -38,7 +35,6 @@ console.log("Product Info:", info.productInfo);
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Cart update response:", res.data);
       setUserData(res.data.user || res.data); // ✅ safer update
       setQuantity(newQty);
       toast.success("Quantity updated");
@@ -68,7 +64,6 @@ console.log("Product Info:", info.productInfo);
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Cart remove response:", res.data);
       setUserData(res.data.user || res.data); // ✅ ensure correct userData update
       toast.success("Removed from cart");
     } catch (err) {
