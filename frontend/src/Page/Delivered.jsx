@@ -3,7 +3,7 @@ import { AuthContext } from "../Context/AuthProvider";
 import NavBar from "../Components/NavBar";
 import { Link } from "react-router-dom";
 import Footer from "../Components/Footer";
-import DeliveryCard from "../Components/deliveryCard";
+import DeliveryCard from "../Components/DeliveryCard";
 
 const Delivered = () => {
   const { loading, userData } = useContext(AuthContext);
